@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>La mia biblioteca</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+
+<body>
+
+  <main class="container">
+
+    <!-- INTESTAZIONE -->
+    <header class="header">
+
+      <div>
+        <p class="eyebrow">LA MIA COLLEZIONE</p>
+
+        <h1>La mia biblioteca</h1>
+
+        <p class="subtitle">
+          Tieni tutti i tuoi libri in ordine, in un unico posto.
+        </p>
+      </div>
+
+      <div class="header-icon">
+        📚
+      </div>
+
+    </header>
+
+
+    <!-- RICERCA / AGGIUNTA LIBRO -->
+    <section class="card add-section">
+
+      <!-- ISBN -->
+      <div class="isbn-grid">
+  <input
+    type="text"
+    id="isbnInput"
+    placeholder="Inserisci ISBN..."
+  >
+
+  <button id="searchBookBtn" class="primary-btn">
+    Cerca ISBN
+  </button>
+
+  <button id="scanIsbnBtn" class="secondary-btn">
+    📷 Scansiona ISBN
+  </button>
+</div>
+
+<div id="scannerContainer" class="scanner-container hidden">
+  <div id="reader"></div>
+
+  <button id="closeScannerBtn" class="close-scanner-btn">
+    ✕ Chiudi fotocamera
+  </button>
+</div>
+
+
+      <!-- DIVISORE -->
+      <div class="divider">
+        <span>oppure</span>
+      </div>
+
+
+      <!-- TITOLO / AUTORE -->
+      <div class="search-grid">
+
+        <input
+          type="text"
+          id="titleInput"
+          placeholder="Titolo del libro"
+        >
+
+        <input
+          type="text"
+          id="authorInput"
+          placeholder="Autore"
+        >
+
+        <button
+          id="searchByTitleBtn"
+          class="secondary-btn"
+        >
+          🔎 Cerca
+        </button>
+
+      </div>
+
+
+      <!-- MESSAGGIO -->
+      <p
+        id="message"
+        class="message"
+      ></p>
+
+
+      <!-- RISULTATO RICERCA -->
+      <div
+        id="bookPreview"
+        class="book-preview hidden"
+      ></div>
+
+
+      <!-- RICERCA MANUALE -->
+      <div
+        id="manualSearch"
+        class="manual-search hidden"
+      ></div>
+
+    </section>
+
+
+    <!-- BIBLIOTECA -->
+    <section class="library-section">
+
+      <div class="library-header">
+
+        <div>
+          <p class="eyebrow">I TUOI LIBRI</p>
+          <h2>Biblioteca</h2>
+        </div>
+
+
+        <!-- FILTRI -->
+        <div class="filters">
+
+          <button
+            id="showAllBtn"
+            class="filter-btn active"
+          >
+            📖 Tutti
+          </button>
+
+          <button
+            id="showUnreadBtn"
+            class="filter-btn"
+          >
+            📕 Da leggere
+          </button>
+
+          <button
+            id="showReadBtn"
+            class="filter-btn"
+          >
+            📗 Letti
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- CERCA NELLA BIBLIOTECA -->
+      <div class="library-search">
+
+        <span>⌕</span>
+
+        <input
+          type="text"
+          id="librarySearch"
+          placeholder="Cerca nella tua biblioteca..."
+        >
+
+      </div>
+
+
+      <!-- LIBRI -->
+      <div
+        id="books"
+        class="books"
+      ></div>
+      <div class="backup-buttons">
+  <button id="exportBooksBtn" class="backup-btn">
+    📥 Esporta biblioteca
+  </button>
+
+  <button id="importBooksBtn" class="backup-btn">
+    📤 Importa biblioteca
+  </button>
+
+  <input
+    type="file"
+    id="importBooksInput"
+    accept=".json"
+    hidden
+  >
+</div>
+
+    </section>
+
+  </main>
+
+
+  <script src="script.js"></script>
+
+</body>
+</html>
