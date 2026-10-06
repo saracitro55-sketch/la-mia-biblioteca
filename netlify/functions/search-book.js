@@ -8,16 +8,136 @@ exports.handler = async function(event) {
     return {
       statusCode: 400,
       body: JSON.stringify({
+        found: false,
         error: "ISBN mancante"
       })
     };
   }
 
-  let googleBook = null;
-  let openLibraryBook = null;
+  // ===============================
+  // 1. OPEN LIBRARY - ISBN DIRETTO
+  // ===============================
+
+  try {
+
+    const url =
+      "https://openlibrary.org/isbn/" +
+      encodeURIComponent(isbn) +
+      ".json";
+
+    const response = await fetch(url);
+
+    if (response.ok) {
+
+      const data = await response.json();
+
+      const title =
+        data.title || "";
+
+      let author = "";
+
+      if (
+        data.authors &&
+        data.authors.length > 0
+      ) {
+
+        const authors = [];
+
+        for (const item of data.authors) {
+
+          if (item.name) {
+            authors.push(item.name);
+          }
+
+        }
+
+        author = authors.join(", ");
+      }
+
+      const publisher =
+        data.publishers &&
+        data.publishers.length > 0
+          ? (
+              data.publishers[0].name ||
+              ""
+            )
+          : "";
+
+      const pages =
+        data.number_of_pages ||
+        "";
+
+      const publishedDate =
+        data.publish_date ||
+        "";
+
+      let genre = "";
+
+      if (
+        data.subjects &&
+        data.subjects.length > 0
+      ) {
+
+        genre =
+          data.subjects[0].name ||
+          "";
+
+      }
+
+      if (title || author) {
+
+        return {
+
+          statusCode: 200,
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+
+            found: true,
+
+            book: {
+
+              title: title,
+
+              author: author,
+
+              isbn: isbn,
+
+              pages: pages,
+
+              publisher: publisher,
+
+              genre: genre,
+
+              publishedDate:
+                publishedDate
+
+            }
+
+          })
+
+        };
+
+      }
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "Open Library ISBN:",
+      error
+    );
+
+  }
+
 
   // ===============================
-  // GOOGLE BOOKS
+  // 2. GOOGLE BOOKS
   // ===============================
 
   try {
@@ -27,174 +147,190 @@ exports.handler = async function(event) {
       encodeURIComponent(isbn) +
       "&maxResults=10&country=IT";
 
-    const response = await fetch(googleUrl);
+    const response =
+      await fetch(googleUrl);
 
     if (response.ok) {
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
-      if (data.items && data.items.length > 0) {
+      if (
+        data.items &&
+        data.items.length > 0
+      ) {
 
-        googleBook = data.items[0].volumeInfo;
+        const book =
+          data.items[0].volumeInfo;
+
+        return {
+
+          statusCode: 200,
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+
+            found: true,
+
+            book: {
+
+              title:
+                book.title || "",
+
+              author:
+                book.authors
+                  ? book.authors.join(", ")
+                  : "",
+
+              isbn: isbn,
+
+              pages:
+                book.pageCount || "",
+
+              publisher:
+                book.publisher || "",
+
+              genre:
+                book.categories &&
+                book.categories.length > 0
+                  ? book.categories[0]
+                  : "",
+
+              publishedDate:
+                book.publishedDate || ""
+
+            }
+
+          })
+
+        };
 
       }
+
     }
 
   } catch (error) {
 
     console.log(
-      "Google Books non disponibile:",
+      "Google Books:",
       error
     );
 
   }
 
+
   // ===============================
-  // OPEN LIBRARY
+  // 3. OPEN LIBRARY SEARCH
   // ===============================
 
   try {
 
-    const openLibraryUrl =
+    const searchUrl =
       "https://openlibrary.org/search.json?isbn=" +
       encodeURIComponent(isbn) +
       "&limit=10";
 
-    const response = await fetch(openLibraryUrl);
+    const response =
+      await fetch(searchUrl);
 
     if (response.ok) {
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
-      if (data.docs && data.docs.length > 0) {
+      if (
+        data.docs &&
+        data.docs.length > 0
+      ) {
 
-        openLibraryBook = data.docs[0];
+        const book =
+          data.docs[0];
+
+        return {
+
+          statusCode: 200,
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+
+            found: true,
+
+            book: {
+
+              title:
+                book.title || "",
+
+              author:
+                book.author_name
+                  ? book.author_name.join(", ")
+                  : "",
+
+              isbn: isbn,
+
+              pages:
+                book.number_of_pages_median ||
+                "",
+
+              publisher:
+                book.publisher &&
+                book.publisher.length > 0
+                  ? book.publisher[0]
+                  : "",
+
+              genre:
+                book.subject &&
+                book.subject.length > 0
+                  ? book.subject[0]
+                  : "",
+
+              publishedDate:
+                book.first_publish_year ||
+                ""
+
+            }
+
+          })
+
+        };
 
       }
+
     }
 
   } catch (error) {
 
     console.log(
-      "Open Library non disponibile:",
+      "Open Library Search:",
       error
     );
 
   }
+
 
   // ===============================
   // NESSUN RISULTATO
   // ===============================
 
-  if (!googleBook && !openLibraryBook) {
-
-    return {
-      statusCode: 404,
-      body: JSON.stringify({
-        found: false
-      })
-    };
-
-  }
-
-  // ===============================
-  // TITOLO
-  // ===============================
-
-  const title =
-    googleBook?.title ||
-    openLibraryBook?.title ||
-    "";
-
-  // ===============================
-  // AUTORE
-  // ===============================
-
-  const googleAuthor =
-    googleBook?.authors?.join(", ") || "";
-
-  const openLibraryAuthor =
-    openLibraryBook?.author_name?.join(", ") || "";
-
-  const author =
-    googleAuthor ||
-    openLibraryAuthor ||
-    "";
-
-  // ===============================
-  // PAGINE
-  // ===============================
-
-  const pages =
-    googleBook?.pageCount ||
-    openLibraryBook?.number_of_pages_median ||
-    "";
-
-  // ===============================
-  // EDITORE
-  // ===============================
-
-  const publisher =
-    googleBook?.publisher ||
-    openLibraryBook?.publisher?.[0] ||
-    "";
-
-  // ===============================
-  // GENERE
-  // ===============================
-
-  let genre = "";
-
-  if (
-    googleBook?.categories &&
-    googleBook.categories.length > 0
-  ) {
-
-    genre = googleBook.categories[0];
-
-  } else if (
-    openLibraryBook?.subject &&
-    openLibraryBook.subject.length > 0
-  ) {
-
-    genre = openLibraryBook.subject[0];
-
-  }
-
-  // ===============================
-  // ANNO
-  // ===============================
-
-  const publishedDate =
-    googleBook?.publishedDate ||
-    openLibraryBook?.first_publish_year ||
-    "";
-
-  // ===============================
-  // RISULTATO
-  // ===============================
-
   return {
 
-    statusCode: 200,
+    statusCode: 404,
 
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type":
+        "application/json"
     },
 
     body: JSON.stringify({
 
-      found: true,
-
-      book: {
-        title: title,
-        author: author,
-        isbn: isbn,
-        pages: pages,
-        publisher: publisher,
-        genre: genre,
-        publishedDate: publishedDate
-      }
+      found: false
 
     })
 
