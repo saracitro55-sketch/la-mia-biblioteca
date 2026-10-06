@@ -785,53 +785,33 @@ async function searchByISBN() {
       .trim()
       .replace(/[-\s]/g, "");
 
-
   if (!isbn) {
-
     message.textContent =
       "⚠️ Inserisci un ISBN.";
-
     return;
   }
-
 
   message.textContent =
     "🔎 Sto cercando il libro...";
 
-
   bookPreview.classList.add("hidden");
   bookPreview.innerHTML = "";
 
-
   try {
 
-    const url =
-      "https://openlibrary.org/search.json?isbn=" +
-      encodeURIComponent(isbn) +
-      "&limit=10";
-
-
     const response =
-      await fetch(url);
-
-
-    if (!response.ok) {
-
-      throw new Error(
-        "Errore HTTP " +
-        response.status
+      await fetch(
+        "/.netlify/functions/search-book?isbn=" +
+        encodeURIComponent(isbn)
       );
-
-    }
-
 
     const data =
       await response.json();
 
-
     if (
-      !data.docs ||
-      data.docs.length === 0
+      !response.ok ||
+      !data.found ||
+      !data.book
     ) {
 
       message.textContent =
@@ -842,20 +822,54 @@ async function searchByISBN() {
       return;
     }
 
-
     const book =
-      data.docs[0];
+      data.book;
 
+    showBookPreview({
 
-    const title =
-      book.title ||
-      "Titolo non disponibile";
+      title:
+        book.title ||
+        "Titolo non disponibile",
 
+      author:
+        book.author ||
+        "Autore non disponibile",
 
-    const author =
-      book.author_name
-        ? book.author_name.join(", ")
-        : "Autore non disponibile";
+      isbn:
+        book.isbn ||
+        isbn,
+
+      pages:
+        book.pages ||
+        "",
+
+      genre:
+        book.genre ||
+        "",
+
+      publisher:
+        book.publisher ||
+        "",
+
+      publishedDate:
+        book.publishedDate ||
+        ""
+
+    });
+
+    message.textContent =
+      "✅ Libro trovato!";
+
+  } catch (error) {
+
+    console.error(error);
+
+    message.textContent =
+      "❌ Errore durante la ricerca.";
+
+    showManualBookForm();
+  }
+}
 
 
     showBookPreview({
